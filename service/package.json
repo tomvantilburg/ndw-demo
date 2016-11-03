@@ -1,0 +1,11 @@
+{
+  "name": "ndw-data-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "postgres_service.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tom van Tilburg",
+  "license": "MIT"
+}

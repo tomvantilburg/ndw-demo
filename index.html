@@ -1,0 +1,236 @@
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+</head>
+  <style>
+body {
+  font: 16px sans-serif;
+  padding-left: 200px;
+  padding-right: 200px;
+}
+.axis--x text {
+  font: 10px sans-serif;
+}
+
+.axis--y text {
+  font: oblique 12px Georgia, serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.milestone {
+        font: oblique 10px Georgia, serif;
+}
+
+.floatright {
+        float: right;
+        margin: 10px;
+}
+
+#sensormap {
+        width: 500px;
+        height: 500px;
+  position: relative;
+  overflow: hidden;
+}
+
+#graphmap {
+        width: 100%;
+        height: 100px;
+        overflow: hidden;
+        position: relative;
+}
+
+.tile {
+  position: absolute;
+  width: 256px;
+  height: 256px;
+}
+
+</style>
+<body>
+<div id="graph"></div>
+
+<script>
+
+var speedScale = d3.scale.linear()
+        .domain([0,50,70,100,130])
+        .range(['red','red','orange','steelBlue','steelBlue']);
+
+var counter = 0;
+var interval;
+var startdate = new Date('2016-02-11 15:30');
+var date = startdate;
+function addMinutes(date, minutes) {
+    return new Date(date.getTime() + minutes*60000);
+}
+function runSpeed(){
+        window.clearInterval(interval);
+        interval = window.setInterval(function(){
+                        //36 * 5 minutes = 3 hours
+                        counter = counter>36?0:counter+1;
+                        date = counter>36?startdate:addMinutes(date,5);
+                        d3.select('#curdate').html(date.toLocaleString());
+                        sensorlayer.drawboard.selectAll('path')
+                        .style('fill',function(d){
+                                return speedScale(d.speed[counter]);
+                        });
+        },500);
+}
+function stopSpeed(){
+
+        window.clearInterval(interval);
+}
+
+/*
+d3.csv('sensorA12.csv',function(data){
+                var sensordata = data.map(function(d){
+                                return {
+                                        id: d.name,
+                                        type: 'Feature',
+                                        geometry: {
+                                                type: 'Point',
+                                                coordinates: [d.lon, d.lat]
+                                        },
+                                        style: {
+                                                radius: 3
+                                        },
+                                        speed: d.speed.replace('{','').replace('}','').split(',')
+                                };
+                });
+                sensorA12layer.data = sensordata;
+});*/
+
+/** GRAPHS **/
+function build(data,title,param){
+                console.log('loaded');
+                var margin = {top: 40, right: 40, bottom: 40, left: 40},
+    width = 300 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+                var scaley = d3.scale.linear().range([height,0]).domain([1,92]);
+                var scalex = d3.time.scale().range([0,width]).domain([new Date(2012, 0, 1,15,30),new Date(2012,0,1,18,30)]);
+
+
+                var xAxis = d3.svg.axis()
+                        .scale(scalex)
+                        .orient("bottom")
+                        .tickFormat(d3.time.format('%H:%M'))
+                        .ticks(d3.time.minute, 30);
+
+    var yAxis = d3.svg.axis()
+                        .scale(scaley)
+                        .orient("left");
+
+                var locationdata = [
+                        {name:'Clausplein',km:7},
+                        {name:'Zoetermeer',km:13},
+                        {name:'Afslag Rotterdam',km:27.4},
+                        {name:'Afslag Leiden',km:35.4},
+                        {name:'Zon?',km:41.2},
+                        {name:'Zon?',km:47.3},
+                        {name:'Oudenrijn',km:57.5},
+                        {name:'Lunetten',km:63.2},
+                        {name:'Veenendaal',km:91.9}
+                ];
+
+                d3.csv('lanes.csv',function(data){
+                                svg.selectAll('.lanes').data(data).enter()
+                                        .append('rect')
+                                        .classed('lanes',true)
+                                        .attr('x',-10)
+                                        .attr('y',function(d){return scaley(d.dist/10);})
+                                        .attr('height',4)
+                                        .attr('width',function(d){
+                                                        return d.lanes * 2;
+                                        })
+                                        .style('fill','grey')
+                });
+
+                var speedcolor = d3.scale.linear()
+        .domain([0,50,130])
+        .range(['purple','red','yellow']);
+    var flowcolor = d3.scale.linear()
+        .domain([1000,3000,8000])
+        .range(['purple','red','yellow']);
+                var svg = d3.select('#graph').append('svg')
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .append("g")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                svg.append("g")
+                                .attr("class", "axis axis--y")
+                                .attr("transform", "translate(-10,0)")
+                                .call(yAxis);
+
+                svg.append("g")
+                                .attr("class", "axis axis--x")
+                                .attr("transform", "translate(0," + (height + 10) + ")")
+                                .call(xAxis)
+                                .selectAll("text")
+                                .attr("y", 0)
+                                .attr("x", 9)
+                                .attr("dy", ".35em")
+                                .attr("transform", "rotate(45)")
+                                .style("text-anchor", "start");
+
+                                var tmp=0;
+                var entity = svg.selectAll('circle').data(data);
+                entity.enter().append('circle')
+                        .attr('cx',function(d){
+                                        //return scalex(parseInt(d.hour)*60 + parseInt(d.minute));
+                                        return scalex(new Date(2012,0,1,d.hour,d.minute));
+                        })
+                        .attr('cy',function(d){
+                                        return scaley(d.location / 10);
+                        })
+                        .style('fill',function(d){
+                                        switch (param){
+                                        case 'speed':
+                                                return speedcolor(d.speed);
+                                        case 'flow':
+                                                return flowcolor(d.flow);
+                                        }
+                        })
+                        .attr('r',1.5)
+                        .on('mouseover',function(d){
+                                        var scale = d3.scale.linear().range([0,89]).domain([(15*60)+30,(18*60)+30]);
+                                        var coords = sensorA12layer.data.filter(x=>x.id =='RWS01_MONIBAS_0121hrl' + d.location + 'ra')[0].geometry.coordinates;
+                                        var left = graphmap.projection(coords)[0];
+                                        d3.select('#graphmap').select('svg').selectAll('line').remove();
+                                        d3.select('#graphmap').select('svg').append('line')
+                                                .attr('x1',left).attr('y1',-100).attr('x2',left).attr('y2',400)
+                                                .style('stroke','black').style('stroke-width','1px');
+                                        sensorA12layer.drawboard.selectAll('path').style('fill',function(data){
+                                                        var index = Math.floor(scale(parseInt(d.hour)*60 + parseInt(d.minute)));
+                                                        return speedcolor(data.speed[index]);
+                                        });
+                        })
+                        .on('mouseout',function(d){
+                        });
+
+                svg.selectAll('.milestone').data(locationdata).enter()
+        .append('text')
+        .classed('milestone',true)
+        .attr('x',0)
+        .attr('y',function(d){return scaley(d.km);})
+        .text(function(d){return d.name;});
+                svg.append('text').attr('x',0).attr('y',-20).text(title);
+}
+
+d3.csv('./data/flow_cloud_minute.csv',function(d){build(d,'Speed Cloudy (6 days)','speed')});
+//d3.csv('flow_cloud_minute.csv',function(d){build(d,'Flow Cloudy (6 days)','flow')});
+d3.csv('./data/flow_sun_minute.csv',function(d){build(d,'Speed Sunny (7 days)','speed')});
+//d3.csv('flow_sun_minute.csv',function(d){build(d,'Flow Sunny (7 days)','flow')});
+d3.csv('./data/flow_wknd_minute.csv',function(d){build(d,'Speed Weekend (4 days)','speed')});
+//d3.csv('flow_wknd_minute.csv',function(d){build(d,'Flow Weekend (4 days)','flow')});
+
+
+</script>
+</body>
+</html>
