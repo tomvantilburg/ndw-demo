@@ -1,4 +1,4 @@
 node_modules
 bower_components
 *.*~
-service
+service/node_modules
