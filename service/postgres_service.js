@@ -1,9 +1,10 @@
-var WebSocketServer = require('ws').Server;
-var  express = require('express');
-var  app = express();
-var  pg = require('pg');
-var  http = require('http');
-var  cluster = require('cluster');
+var WebSocketServer = require('ws').Server
+  , express = require('express')
+  , app = express()
+  ,pg = require('pg').native
+  ,http = require('http')
+  ,cluster=require('cluster');
+
 
 var client = new pg.Client({
     user: 'geodan',
@@ -85,7 +86,7 @@ else
 				});
 			});
 		
-		
+
 		/*
 		if(the_call.request && the_call.request=="getcapabilities")
 		{
