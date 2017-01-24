@@ -1,0 +1,49 @@
+ <link rel="import"  href="./bower_components/polymer/polymer.html">
+ <link rel="import"  href="./bower_components/iron-flex-layout/iron-flex-layout.html">
+ <link rel="import"  href="ndw-graph.html">
+ <dom-module id="ndw-main">
+
+  <template>
+	<style>
+	ndw-graph {
+		margin: 20px;
+	}
+	.container {
+	  display: flex; /* or inline-flex */
+	}
+	</style>
+	<div class='container'>
+	<ndw-graph id="RWS01_MONIBAS_0121hrl%" title="A2"></ndw-graph>
+ 	<ndw-graph id="RWS01_MONIBAS_0021hrl%" title="A12"></ndw-graph>
+	</div>
+  </template>
+
+  <script>
+	Polymer({
+	  is: "ndw-main",
+
+	  properties: {
+		
+	  },
+	  attached: function(){
+	  	  var self = this;
+	  	  	ws = new WebSocket('ws:\\localhost:8088');
+			ws.onopen = function(d){
+				console.log('open!' ,d)
+				ws.send('{"request":"all", "road":"RWS01_MONIBAS_0021hrl%", "interval":"5 hours"}')
+				ws.send('{"request":"all", "road":"RWS01_MONIBAS_0121hrl%", "interval":"5 hours"}')
+				window.setInterval(function(){
+					console.log('getting new data', new Date());
+					ws.send('{"request":"last", "road":"RWS01_MONIBAS_0021hrl%", "interval":"1 minute"}')
+					ws.send('{"request":"last", "road":"RWS01_MONIBAS_0121hrl%", "interval":"1 minute"}')
+				},1000*60);
+			}
+			ws.onmessage = function(d){
+				var data = JSON.parse(d.data);
+				self.$[data.ref].addData(data);
+			}
+	  }
+	});
+  </script>
+
+</dom-module>
