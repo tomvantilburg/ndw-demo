@@ -1,0 +1,26 @@
+{
+  "name": "ndw-demo",
+  "homepage": "https://github.com/tomvantilburg/ndw-demo",
+  "authors": [
+    "Tom van Tilburg <tom.van.tilburg@gmail.com>"
+  ],
+  "description": "NDW dashboard in polyer",
+  "main": "index.html",
+  "keywords": [
+    "NDW",
+    "webcomponents",
+    "dashboard"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "iron-elements": "^1.0.10",
+    "paper-elements": "^1.0.7"
+  }
+}

@@ -1,7 +1,7 @@
 var WebSocketServer = require('ws').Server
   , express = require('express')
   , app = express()
-  ,pg = require('pg').native
+  ,pg = require('pg')
   ,http = require('http')
   ,cluster=require('cluster');
 
